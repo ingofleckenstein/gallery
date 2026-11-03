@@ -1,0 +1,80 @@
+/* Scope to post attachments in Spaces where Gallery is enabled. The core
+   renderer still generates preview URLs and groups the full-size gallery. */
+.gallery-stream-attachments .post-files-images {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 180px));
+    gap: 8px;
+    justify-content: start !important;
+    margin: 12px 0;
+}
+
+.gallery-stream-attachments .post-files-images > div {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0;
+    height: 140px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.gallery-stream-attachments .post-files-images > div > a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid #d8dce0;
+    border-radius: 6px;
+}
+
+.gallery-stream-attachments .post-files-images img {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain;
+    margin: 0 !important;
+}
+
+.gallery-stream-attachments .post-files-images a:focus-visible {
+    outline: 3px solid #1769aa;
+    outline-offset: 2px;
+}
+
+.gallery-stream-upload-preview ul.files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.gallery-stream-upload-preview .gallery-stream-upload-image {
+    display: flex !important;
+    flex-direction: column;
+    width: 120px;
+    max-width: 100%;
+    padding: 6px;
+    margin: 0;
+    background-image: none !important;
+    border: 1px solid #d8dce0;
+    border-radius: 6px;
+}
+
+.gallery-stream-upload-image > img {
+    width: 100%;
+    height: 100px;
+    object-fit: contain;
+}
+
+.gallery-stream-upload-image .file-preview-content {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.gallery-stream-upload-preview .gallery-stream-upload-image.hiddenFile {
+    display: none !important;
+}

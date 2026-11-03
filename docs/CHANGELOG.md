@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.7.3 (November 3, 2026, fork)
+----------------------------
+- Enh: Compact image attachment thumbnails below Space stream Posts.
+- Enh: Image thumbnails in the standard Post upload and edit previews.
+- Preserve HumHub's preview files, gallery links, upload removal and permissions.
+
 1.7.2 (October 12, 2026)
 ------------------------
 - Fix: Refined media form handling

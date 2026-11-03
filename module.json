@@ -3,12 +3,12 @@
     "name": "Gallery",
     "description": "Adds galleries to Spaces and profiles.",
     "keywords": ["gallery", "photo", "organisation"],
-    "version": "1.7.2",
+    "version": "1.7.3",
     "humhub": {
         "minVersion": "1.18",
         "maxVersion": "1.18"
     },
-    "homepage": "https://github.com/humhub-contrib/gallery",
+    "homepage": "https://github.com/ingofleckenstein/gallery",
     "authors": [
         {
             "name": "Sebastian Stumpf"
