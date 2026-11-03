@@ -46,6 +46,10 @@ class GalleryListEntry extends Widget
             return;
         }
 
+        if ($metaData === null) {
+            return '';
+        }
+
         $metaData['creatorUrl'] = !empty($metaData['creator']) ? $metaData['creator']->createUrl() : '';
         $metaData['creatorThumbnailUrl'] = !empty($metaData['creator']) ? $metaData['creator']->getProfileImage()->getUrl() : '';
         $metaData['uiGalleryId'] = $this->parentGallery ? "GalleryModule-Gallery-" . $this->parentGallery->id : '';
@@ -77,7 +81,13 @@ class GalleryListEntry extends Widget
     private function getFileMetaData($model)
     {
         $file = $model instanceof File ? $model : File::findOne($model['id']);
+        if ($file === null || !$file->canView()) {
+            return null;
+        }
         $contentObject = FileUtils::getBaseObject($file);
+        if ($contentObject === null || $contentObject->content === null || !$contentObject->content->canView()) {
+            return null;
+        }
         $content = $contentObject->content;
 
         return [

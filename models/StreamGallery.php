@@ -88,14 +88,18 @@ class StreamGallery extends BaseGallery
     public function fileListQuery()
     {
         $container = $this->content->container;
-        $joinCondition = 'content.contentcontainer_id = :containerId AND content.object_id = file.object_id and content.object_model = file.object_model';
+        // Rich-text and comment images have show_in_stream=0. Comments belong
+        // to their parent's Content via content_id, not via the comment ID.
+        $joinCondition = 'content.contentcontainer_id = :containerId AND ('
+            . 'content.id = file.content_id OR (file.content_id IS NULL AND '
+            . 'content.object_id = file.object_id AND content.object_model = file.object_model))';
 
         $query = File::find()
             ->innerJoin('content', $joinCondition, ['containerId' => $this->content->container->contentcontainer_id])
            // ->where('content.visibility = :visibility', [':visibility' => Content::VISIBILITY_PUBLIC])
             ->andWhere(['like', 'file.mime_type', 'image/'])
             ->andWhere('content.object_model != :media', ['media' => Media::class])
-            ->andWhere('show_in_stream = 1')
+            ->andWhere(['content.state' => Content::STATE_PUBLISHED])
             ->orderBy(['file.updated_at' => SORT_DESC]);
 
         if (!$container->canAccessPrivateContent()) {

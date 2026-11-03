@@ -1,4 +1,4 @@
-# Stream attachment thumbnails (fork 1.7.3)
+# Stream attachment thumbnails (fork 1.7.4)
 
 Based on upstream Gallery v1.7.2, targeting HumHub 1.18.x.
 
@@ -13,12 +13,17 @@ Based on upstream Gallery v1.7.2, targeting HumHub 1.18.x.
 - The preview uses the server-provided `thumbnailUrl`, not the original image.
 - Non-image files retain HumHub's existing presentation. Audio playback is not
   changed in this release.
-- Profiles, Spaces with Gallery disabled, comments, Chats and images embedded
-  inside rich text are outside the scope of this release.
+- Uploaded inline images in rich-text messages and comments (including video
+  comments) are extracted into a separate thumbnail area at render time.
+  Only files assigned to that record and readable by the viewer are resolved.
+- The stored text is untouched. Originals are not emitted as inline img sources;
+  only preview files load until the viewer opens a gallery link.
+- Profiles and Spaces with Gallery disabled remain unaffected. External images
+  and emoji are not moved into the thumbnail area.
 
 ## Integration
 
-`ShowFiles::EVENT_AFTER_RUN` wraps the core renderer output for Posts only.
+`ShowFiles::EVENT_AFTER_RUN` wraps core attachment output for content and comments.
 Scoped CSS sizes its image grid without replacing templates or gallery links.
 `FilePreview::EVENT_BEFORE_RUN` selects a dedicated JS Preview subclass for
 the standard post composer and Post edit form. The subclass adds thumbnail
@@ -27,6 +32,15 @@ images after the core Preview creates its editable file item.
 Files remain attached to their source Post. No copies, album records, extra
 notifications, database migration or changes to access permissions are needed.
 The existing StreamGallery continues to query posted image attachments.
+It now also joins files via `content_id`, including inline images and comment
+images previously omitted by `show_in_stream=1`. Only published parent content
+is included, with the existing container visibility rules and an additional
+file/content access check before rendering an entry.
+
+`AbstractRichText::EVENT_BEFORE_RUN` uses HumHub's FileExtension parser to extract
+authorized image references from the widget's text only. A per-instance afterRun
+handler appends the server-rendered thumbnail grid. This runs before ProseMirror
+renders Markdown in the browser; a PHP afterRun HTML rewrite alone would not work.
 
 ## Installation
 
@@ -48,6 +62,8 @@ The fork remains restricted to HumHub 1.18.x, matching its upstream base.
 7. Check a mixed image/document/audio Post; non-image attachments must still work.
 8. Confirm disabled Spaces, profiles, comments and Chats are unaffected.
 9. Check with a normal member and a non-member; file access must stay unchanged.
+10. Add inline images to a video comment; check compact output and posted-image
+    gallery inclusion. Existing comments should work without editing/resubmitting.
 
 PHP/JavaScript syntax and an isolated runtime test against the original HumHub
 1.18.5 file Preview are checked locally. A full HumHub database/browser test

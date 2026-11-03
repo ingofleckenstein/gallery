@@ -15,6 +15,10 @@ use humhub\helpers\Html;
 use humhub\modules\gallery\assets\StreamThumbnailAssets;
 use humhub\modules\post\models\Post;
 use humhub\modules\space\models\Space;
+use humhub\modules\comment\models\Comment;
+use humhub\modules\content\components\ContentActiveRecord;
+use humhub\modules\file\converter\PreviewImage;
+use humhub\modules\gallery\helpers\InlineImageThumbnails;
 use Yii;
 
 /**
@@ -26,11 +30,56 @@ use Yii;
  */
 class Events
 {
+    /** Extract uploaded images before ProseMirror creates original-size img tags. */
+    public static function onRichTextBeforeRun($event)
+    {
+        $widget = $event->sender;
+        $record = $widget->record;
+        if ($widget->edit || !static::isSupportedRecord($record)
+            || !static::hasStreamThumbnails($record->content->container)
+            || strpos((string) $widget->text, 'file-guid:') === false) {
+            return;
+        }
+
+        $files = [];
+        foreach ($record->fileManager->findAll() as $file) {
+            $files[$file->guid] = $file;
+        }
+        $converter = new PreviewImage();
+        $images = [];
+        $text = \humhub\modules\content\widgets\richtext\extensions\file\FileExtension::replaceLinkExtension(
+            $widget->text, 'file-guid', static function ($match) use ($files, $converter, &$images) {
+                $guid = $match->getExtensionId();
+                $file = $files[$guid] ?? null;
+                if (!$match->isImage() || $file === null || !$file->canView() || !$converter->applyFile($file)) {
+                    return $match->getFull();
+                }
+                $images[$guid] = ['preview' => $converter->getUrl(), 'original' => $file->getUrl(), 'title' => $file->file_name];
+                return '';
+            });
+        if ($images === []) {
+            return;
+        }
+
+        // Change this render only, never the stored message. No original img
+        // tag reaches the browser, so only the preview is downloaded initially.
+        $widget->text = $text;
+        StreamThumbnailAssets::register($widget->view);
+        $gallery = InlineImageThumbnails::render($images, 'gallery-inline-' . $record->getUniqueId());
+        $widget->on($widget::EVENT_AFTER_RUN, static function ($afterEvent) use ($gallery) {
+            $afterEvent->result .= $gallery;
+        });
+    }
+    protected static function isSupportedRecord($record): bool
+    {
+        return $record instanceof ContentActiveRecord || $record instanceof Comment;
+    }
+
     /** Keep HumHub's converters, file permissions and gallery links intact. */
     public static function onShowFilesAfterRun($event)
     {
         $widget = $event->sender;
-        if (!$widget->object instanceof Post || !$widget->preview || trim((string) $event->result) === '') {
+        if (!static::isSupportedRecord($widget->object) || !$widget->preview || trim((string) $event->result) === '') {
             return;
         }
 

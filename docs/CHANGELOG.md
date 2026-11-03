@@ -1,6 +1,13 @@
 Changelog
 =========
 
+1.7.4 (November 3, 2026, fork)
+----------------------------
+- Fix: Handle inline uploaded images in rich-text messages and comments, including comments on videos.
+- Fix: Include inline and comment images in the posted-image gallery through their parent content ID.
+- Exclude unpublished content and check file/content access before rendering gallery entries.
+- Extract image references before client rendering to avoid downloading originals for thumbnails.
+
 1.7.3 (November 3, 2026, fork)
 ----------------------------
 - Enh: Compact image attachment thumbnails below Space stream Posts.
