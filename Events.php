@@ -36,8 +36,14 @@ class Events
         $widget = $event->sender;
         $record = $widget->record;
         if ($widget->edit || !static::isSupportedRecord($record)
-            || !static::hasStreamThumbnails($record->content->container)
-            || strpos((string) $widget->text, 'file-guid:') === false) {
+            || !static::hasStreamThumbnails($record->content->container)) {
+            return;
+        }
+
+        StreamThumbnailAssets::register($widget->view);
+        Html::addCssClass($widget->options, 'gallery-stream-richtext');
+        $widget->options['data-gallery-stream-group'] = 'gallery-' . $record->getUniqueId();
+        if (strpos((string) $widget->text, 'file-guid:') === false) {
             return;
         }
 
@@ -65,7 +71,7 @@ class Events
         // tag reaches the browser, so only the preview is downloaded initially.
         $widget->text = $text;
         StreamThumbnailAssets::register($widget->view);
-        $gallery = InlineImageThumbnails::render($images, 'gallery-inline-' . $record->getUniqueId());
+        $gallery = InlineImageThumbnails::render($images, 'gallery-' . $record->getUniqueId());
         $widget->on($widget::EVENT_AFTER_RUN, static function ($afterEvent) use ($gallery) {
             $afterEvent->result .= $gallery;
         });

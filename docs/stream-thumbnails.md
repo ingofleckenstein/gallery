@@ -1,11 +1,11 @@
-# Stream attachment thumbnails (fork 1.7.4)
+# Stream attachment thumbnails (fork 1.7.5)
 
 Based on upstream Gallery v1.7.2, targeting HumHub 1.18.x.
 
 ## Behaviour
 
 - In Spaces with Gallery enabled, ordinary Post attachments use a separate
-  thumbnail grid below the message. Tiles are at most 180 x 140 CSS pixels.
+  thumbnail grid below the message. Tiles are at most 96 x 80 CSS pixels.
 - Images retain their full aspect ratio (`object-fit: contain`). Original files
   are opened through HumHub's existing gallery links and grouping.
 - The standard post composer and post edit form show 120px-wide image cards.
@@ -60,7 +60,7 @@ The fork remains restricted to HumHub 1.18.x, matching its upstream base.
 5. Confirm the same images appear in the Space's existing posted-image gallery.
 6. Repeat on a narrow mobile screen and with keyboard navigation.
 7. Check a mixed image/document/audio Post; non-image attachments must still work.
-8. Confirm disabled Spaces, profiles, comments and Chats are unaffected.
+8. Confirm disabled Spaces, profiles and Chats are unaffected.
 9. Check with a normal member and a non-member; file access must stay unchanged.
 10. Add inline images to a video comment; check compact output and posted-image
     gallery inclusion. Existing comments should work without editing/resubmitting.
@@ -71,3 +71,15 @@ requires a running test installation and is still required before deployment.
 
 To repeat the runtime test, make `jsdom` and `jquery@3.7.1` available to Node
 and run `node tests/runtime/stream-thumbnails.cjs /path/to/humhub.file.js`.
+
+## Browser-rendered images (1.7.5)
+
+All supported rich-text output is marked, including messages without file-guid references.
+A MutationObserver sizes legacy images and images rendered after AJAX/PJAX updates.
+Emoji and editable content are excluded. Uploaded references still use server previews;
+legacy/external image URLs retain their existing source and can load the original.
+Inline files and attachments share gallery-<record unique ID>, while replies use their own ID.
+The existing HumHub viewer handles clicks, previous/next, closing and keyboard navigation.
+
+The default GitHub branch is currently master (upstream); these fork changes target main.
+Install main or the explicit fork version, then refresh published assets.

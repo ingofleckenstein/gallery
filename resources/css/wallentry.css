@@ -1,6 +1,12 @@
 .gallery-wall-entry {
     margin-bottom: 20px;
 }
+.gallery-wall-entry img {
+    width: 96px !important;
+    height: 80px !important;
+    max-width: 100% !important;
+    object-fit: contain;
+}
 @media (min-width: 1200px) {
     .gallery-wall-entry {
         float: left;

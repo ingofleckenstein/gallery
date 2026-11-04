@@ -28,7 +28,8 @@ const modules = {
     'ui.view': {isSmall: () => true}
 };
 const context = vm.createContext({
-    console, Promise, Image: window.Image,
+    console, Promise, Image: window.Image, document: window.document,
+    MutationObserver: window.MutationObserver,
     humhub: {module(name, factory) {
         factory({export: exports => { modules[name] = exports; }}, name => {
             assert.ok(modules[name], 'Missing dependency: ' + name);
@@ -71,6 +72,36 @@ async function main() {
     const original = new modules.file.Preview($('<div>'), {fileEdit: true, preventPopover: true});
     original.init([{...image}]);
     assert.equal(original.$.find('img').length, 0, 'Global core Preview must be unchanged');
+
+    // Use HumHub's actual gallery handler to verify navigation membership.
+    let opened;
+    context.blueimp = {Gallery(links, options) { opened = {links, options}; }};
+    vm.runInContext(fs.readFileSync(path.resolve(path.dirname(process.argv[2]),
+        '../../../../../../static/js/humhub/humhub.ui.gallery.js'), 'utf8'), context);
+    modules['ui.gallery'].init();
+    $('body').append('<div class="gallery-stream-richtext" data-gallery-stream-group="gallery-post-1">' +
+        '<p><img src="/old.jpg" alt="Old photo"><img class="emoji" src="/emoji.svg"></p></div>' +
+        '<a id="attachment" href="/attachment.jpg" data-ui-gallery="gallery-post-1">Attachment</a>' +
+        '<div id="unaffected"><img src="/unaffected.jpg"></div>');
+    modules['gallery.streamThumbnails'].init();
+    const first = $('.gallery-stream-thumbnail-link').first();
+    assert.equal(first.attr('href'), '/old.jpg');
+    first.trigger('click');
+    assert.equal(opened.links.length, 2, 'Inline photo and attachment share the carousel');
+    assert.equal(opened.options.index, first[0], 'Viewer opens the clicked photo');
+    assert.equal($('.emoji').parent().is('a'), false, 'Emoji stay untouched');
+    assert.equal($('#unaffected img').parent().is('a'), false, 'Disabled containers stay untouched');
+    $('body').append('<div class="gallery-stream-richtext" data-gallery-stream-group="gallery-comment-2">' +
+        '<img src="/new.jpg"><img src="/second.jpg">' +
+        '<div contenteditable="true"><img src="/editor.jpg"></div></div>');
+    await new Promise(resolve => setImmediate(resolve));
+    const reply = $('[data-gallery-stream-group="gallery-comment-2"]');
+    assert.equal(reply.find('.gallery-stream-thumbnail-link').length, 2, 'AJAX reply processed');
+    reply.find('a').first().trigger('click');
+    assert.equal(opened.links.length, 2, 'Reply carousel excludes parent images');
+    modules['gallery.streamThumbnails'].init();
+    assert.equal(reply.find('a a').length, 0, 'Repeated initialization is idempotent');
+    console.log('PASS: legacy images, AJAX replies, core carousel grouping, emoji/editor isolation');
     console.log('PASS: thumbnails, mixed files, filename escaping, removal, reset and core Preview isolation');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

@@ -1,6 +1,13 @@
 Changelog
 =========
 
+1.7.5 (November 4, 2026, fork)
+----------------------------
+- Reduce stream image tiles to 96 x 80 pixels.
+- Handle legacy/browser-rendered images and dynamically loaded replies as well as uploaded file references.
+- Group inline images and attachments in the same native HumHub viewer; keep each reply separate.
+- Preserve emoji, editors and containers without Gallery.
+
 1.7.4 (November 3, 2026, fork)
 ----------------------------
 - Fix: Handle inline uploaded images in rich-text messages and comments, including comments on videos.
